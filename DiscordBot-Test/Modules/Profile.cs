@@ -42,6 +42,9 @@ namespace DiscordBot_Test.Modules {
                 if (profile[0] != "error") {
                     EmbedBuilder builder = new EmbedBuilder();
 
+                    int index = profile[8].IndexOf('.');
+                    profile[8] = profile[8].Substring(0, index + 3) + @"%";
+
                     builder
                         .AddInlineField("Name", profile[0])
                         .AddInlineField("Gender", profile[1])
@@ -51,7 +54,7 @@ namespace DiscordBot_Test.Modules {
                         .AddInlineField("Salary", profile[6])
                         .AddInlineField("Affiliations", profile[5])
                         .AddInlineField("Place of Birth", profile[7])
-                        .AddInlineField("Threat Level", profile[8] + @"%")
+                        .AddInlineField("Threat Level", profile[8])
                         .WithColor(Color.DarkRed);
 
                     await ReplyAsync($"Profile of : {name}", false, builder.Build());
