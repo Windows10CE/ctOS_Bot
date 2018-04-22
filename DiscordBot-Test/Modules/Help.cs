@@ -16,7 +16,7 @@ namespace DiscordBot_Test.Modules {
                 .AddInlineField("Ping", "Pong!")
                 .AddField("Profile", "ctOS_Registration Integration, WIP.")
                 .AddInlineField("Profile show [name]", "Shows the profile with that name.")
-                .AddInlineField("Profile import", "Requires a JSON file from ctOS_Registration attached to the message.")
+                .AddInlineField("Profile create", "Type \"profile create\" to see the syntax.")
                 .WithColor(Color.Blue);
 
             await ReplyAsync("", false, builder.Build());

@@ -21,7 +21,7 @@ namespace DiscordBot_Test.Modules {
             await ReplyAsync("", false, builder.Build());
         }
 
-        [Command("show"), RequireOwner]
+        [Command("show")]
         public async Task ShowProfileAsync([Remainder] string name) {
             string safeFileName(string s) {
                 return s
@@ -120,6 +120,61 @@ namespace DiscordBot_Test.Modules {
                 return errorArray;
             }
         }
+        
+        [Command("create"), RequireOwner]
+        public async Task ImportJsonAsync([Remainder] string profile = "") {
+            if (profile != "") {
+                string[] splitChars = { ", " };
+                string[] profileArray = profile.Split(splitChars, StringSplitOptions.RemoveEmptyEntries);
+                string filename = $@"C:\Users\aaron\Documents\Profiles\{safeFileName(profileArray[0])}.json";
+                Console.WriteLine($"Creating new profile for {profileArray[0]}");
+                string safeFileName(string s) {
+                    return s
+                        .Replace("\\", "")
+                        .Replace("/", "")
+                        .Replace("\"", "")
+                        .Replace("*", "")
+                        .Replace(":", "")
+                        .Replace("?", "")
+                        .Replace("<", "")
+                        .Replace(">", "")
+                        .Replace("|", "")
+                        .Replace(" ", "_");
+                }
 
+                if (profileArray.Length == 8) {
+                    double GetRandomNumber(double minimum, double maximum) {
+                        Random random = new Random();
+                        return random.NextDouble() * (maximum - minimum) + minimum;
+                    }
+                    JObject profileObj = new JObject(
+                        new JProperty("Name", profileArray[0]),
+                        new JProperty("Gender", profileArray[2]),
+                        new JProperty("Place Of Birth", profileArray[7]),
+                        new JProperty("Age", profileArray[1]),
+                        new JProperty("Occupation", profileArray[3]),
+                        new JProperty("Race", profileArray[4]),
+                        new JProperty("Affiliations", profileArray[5]),
+                        new JProperty("Salary", profileArray[6]),
+                        new JProperty("Threat Level", GetRandomNumber(0, 100).ToString()));
+                    if (File.Exists(filename)) {
+                        File.Delete(filename);
+                        File.WriteAllText(filename, profileObj.ToString());
+                        await ReplyAsync($"Profile created for : {profileArray[0]}");
+                    } else File.WriteAllText(filename, profileObj.ToString());
+                } else if (profileArray.Length < 8) {
+                    await ReplyAsync("Not enough arguments.");
+                } else if (profileArray.Length > 8) {
+                    await ReplyAsync("Too many arguments");
+                } else await ReplyAsync("An error has occured.");
+            } else {
+                EmbedBuilder builder = new EmbedBuilder();
+
+                builder.WithTitle("profile create")
+                                    .WithDescription(@"profile create [name], [age], [gender], [occupation], [race], [affiliations], [salary], [place of birth]")
+                                    .WithColor(Color.DarkTeal);
+                await ReplyAsync("", false, builder.Build());
+            }
+        }
     }
 }
