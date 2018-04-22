@@ -2,62 +2,69 @@
 using Discord;
 using Discord.WebSocket;
 using System.Threading.Tasks;
-using System.Threading;
 using System.IO;
+using Discord.Commands;
+using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
 
 namespace DiscordBot_Test
 {
-    public class Program
-    {
-        static void Main(string[] args)
-        // Start the Async method
-        => new Program().MainAsync().GetAwaiter().GetResult();
+    public class Program {
+        static void Main(string[] args) => new Program().RunBotAsync().GetAwaiter().GetResult();
 
-        private CommandHandler _handler;
+        private DiscordSocketClient _client;
+        private CommandService _commands;
+        private IServiceProvider _service;
 
-        DiscordSocketClient client;
+        public async Task RunBotAsync() {
+            _client = new DiscordSocketClient();
+            _commands = new CommandService();
 
-        public async Task MainAsync() {
-            client = new DiscordSocketClient();
+            _service = new ServiceCollection()
+                .AddSingleton(_client)
+                .AddSingleton(_commands)
+                .BuildServiceProvider();
 
-            // Log events
-            client.Log += Log;
+            string botToken = File.ReadAllText("Token");
 
-            Console.WriteLine("Press Any Key To Exit");
+            _client.Log += Log;
 
-            // Connecting to Discord
-            string tokenPath = @"token";
-            string token = File.ReadAllText(tokenPath);
-            await client.LoginAsync(TokenType.Bot, token);
-            await client.StartAsync();
+            await RegisterCommandsAsync();
 
-            // Starting the CommandHandler
-            _handler = new CommandHandler(client);
+            await _client.LoginAsync(TokenType.Bot, botToken);
 
-            // Shutdown stuff
-            char shutdown;
-            shutdown = Console.ReadKey().KeyChar;
-            Console.WriteLine("");
-            #pragma warning disable CS0472 // The result of the expression is always the same since a value of this type is never equal to 'null'
-            while (shutdown != null) {
-            #pragma warning restore CS0472 // The result of the expression is always the same since a value of this type is never equal to 'null'
-                await Shutdown();
-            }
+            await _client.StartAsync();
 
-            // Block this task until the program is closed.
             await Task.Delay(-1);
         }
 
-        private Task Log(LogMessage msg) {
-            Console.WriteLine(msg.ToString());
+        public Task Log(LogMessage arg) {
+            Console.WriteLine(arg);
+
             return Task.CompletedTask;
         }
 
-        public async Task Shutdown() {
-            await client.StopAsync();
-            Console.WriteLine("Goodbye");
-            Thread.Sleep(2500);
-            Environment.Exit(0);
+        public async Task RegisterCommandsAsync() {
+            _client.MessageReceived += HandleCommandAsync;
+
+            await _commands.AddModulesAsync(Assembly.GetEntryAssembly());
+        }
+
+        public async Task HandleCommandAsync(SocketMessage s) {
+            var message = s as SocketUserMessage;
+            if (message == null || message.Author.IsBot) return;
+
+            int argPos = 0;
+
+            if (message.HasCharPrefix('!', ref argPos) || message.HasMentionPrefix(_client.CurrentUser, ref argPos)) {
+                var context = new SocketCommandContext(_client, message);
+
+                var result = await _commands.ExecuteAsync(context, argPos, _service);
+
+                if (!result.IsSuccess && result.Error != CommandError.UnknownCommand) {
+                    Console.WriteLine(result.ErrorReason);
+                }
+            }
         }
     }
 }
