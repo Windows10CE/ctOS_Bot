@@ -15,7 +15,7 @@ namespace DiscordBot_Test.Modules {
 
             builder
                 .AddInlineField("profile show [name]", "Shows the profile of the name given.")
-                .AddInlineField("profile import", "Imports a profile, must have a JSON file from ctOS_Registration attached to the message. (Doesn't exist, WIP)")
+                .AddInlineField("profile create", "Creates a new profile, use \"!profile create\" to see the syntax.")
                 .WithColor(Color.Red);
 
             await ReplyAsync("", false, builder.Build());
@@ -58,6 +58,8 @@ namespace DiscordBot_Test.Modules {
                         .WithColor(Color.DarkRed);
 
                     await ReplyAsync($"Profile of : {name}", false, builder.Build());
+                    Console.WriteLine($"Showing profile of {name} to @{Context.User.Username}#{Context.User.Discriminator} from the server {Context.Guild.Name}");
+                    Console.WriteLine("");
                 } else await ReplyAsync($"{Context.User.Mention} there was an error.");
             } else await ReplyAsync($"{Context.User.Mention} profile for {name} was not found.");
         }
@@ -121,13 +123,16 @@ namespace DiscordBot_Test.Modules {
             }
         }
         
-        [Command("create"), RequireOwner]
+        [Command("create")]
         public async Task ImportJsonAsync([Remainder] string profile = "") {
             if (profile != "") {
                 string[] splitChars = { ", " };
                 string[] profileArray = profile.Split(splitChars, StringSplitOptions.RemoveEmptyEntries);
                 string filename = $@"C:\Users\aaron\Documents\Profiles\{safeFileName(profileArray[0])}.json";
+                Console.WriteLine(filename);
                 Console.WriteLine($"Creating new profile for {profileArray[0]}");
+                Console.WriteLine($"Profile created by @{Context.User.Username}#{Context.User.Discriminator} from the server {Context.Guild.Name}");
+                Console.WriteLine("");
                 string safeFileName(string s) {
                     return s
                         .Replace("\\", "")
@@ -160,8 +165,8 @@ namespace DiscordBot_Test.Modules {
                     if (File.Exists(filename)) {
                         File.Delete(filename);
                         File.WriteAllText(filename, profileObj.ToString());
-                        await ReplyAsync($"Profile created for : {profileArray[0]}");
                     } else File.WriteAllText(filename, profileObj.ToString());
+                    await ShowProfileAsync(profileArray[0]);
                 } else if (profileArray.Length < 8) {
                     await ReplyAsync("Not enough arguments.");
                 } else if (profileArray.Length > 8) {

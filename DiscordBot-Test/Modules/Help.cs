@@ -14,7 +14,7 @@ namespace DiscordBot_Test.Modules {
             builder
                 .AddInlineField("Help", "This Help Message")
                 .AddInlineField("Ping", "Pong!")
-                .AddField("Profile", "ctOS_Registration Integration, WIP.")
+                .AddField("Profile", "ctOS_Registration Integration")
                 .AddInlineField("Profile show [name]", "Shows the profile with that name.")
                 .AddInlineField("Profile create", "Type \"profile create\" to see the syntax.")
                 .WithColor(Color.Blue);

@@ -35,6 +35,9 @@ namespace DiscordBot_Test
 
             await _client.StartAsync();
 
+            await Task.Delay(3000);
+            Console.WriteLine("");
+
             await Task.Delay(-1);
         }
 
@@ -56,13 +59,14 @@ namespace DiscordBot_Test
 
             int argPos = 0;
 
-            if (message.HasCharPrefix('!', ref argPos) || message.HasMentionPrefix(_client.CurrentUser, ref argPos)) {
+            if (message.HasStringPrefix("ctOS!", ref argPos) || message.HasMentionPrefix(_client.CurrentUser, ref argPos)) {
                 var context = new SocketCommandContext(_client, message);
 
                 var result = await _commands.ExecuteAsync(context, argPos, _service);
 
                 if (!result.IsSuccess && result.Error != CommandError.UnknownCommand) {
                     Console.WriteLine(result.ErrorReason);
+                    Console.WriteLine("");
                 }
             }
         }
